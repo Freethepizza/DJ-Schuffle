@@ -12,6 +12,7 @@ const player = new Player(client, {
 
 client.player = player;
 
+
 const samuel = [
     "cawendios",
     "¿dónde están las pizzas?",
@@ -70,30 +71,63 @@ client.on('messageCreate', async message =>{
     //Avoid infinite message loop bug
     if (message.author.bot) return;
     if (!message.content.startsWith(prefix)) return;
-
+    const voiceChannel = message.member.voice.channel;
     let guildQueue = client.player.getQueue(message.guild.id);
 
     if(command === 'play') {
-        let queue = client.player.createQueue(message.guild.id);
-        await queue.join(message.member.voice.channel);
-        let song = await queue.play(args.join(' ')).catch(_ => {
+        if(voiceChannel){
+            let queue = client.player.createQueue(message.guild.id);
+            await queue.join(message.member.voice.channel);
+            let song = await queue.play(args.join(' ')).catch(_ => {
             if(!guildQueue)
                 queue.stop();
+                message.channel.send("test");
         });
+        }else{
+            return message.channel.send("METETE EN UN PUTO CANAL DE VOZ HOSTIA");
+        }
     }
     else if(command === 'skip') {
+    if(voiceChannel){
+
         guildQueue.skip();
-    }else if(command === 'stop') {
+
+    }else{
+
+        return message.channel.send("METETE EN UN PUTO CANAL DE VOZ HOSTIA");
+
+    }}
+
+    else if(command === 'stop') {
+    if(voiceChannel){
         guildQueue.stop();
-    }else if(command === 'pause') {
+    }else{
+       return message.channel.send("METETE EN UN PUTO CANAL DE VOZ HOSTIA"); 
+    }}
+
+    else if(command === 'pause') {
+        if(voiceChannel){
         guildQueue.setPaused(true);
-    }else if(command === 'continue') {
+    }else{
+        return message.channel.send("METETE EN UN PUTO CANAL DE VOZ HOSTIA");
+    }
+    }
+    
+    else if(command === 'continue') {
+        if(voiceChannel){
         guildQueue.setPaused(false);
-    }else if(command === 'samuel'){
+    }else{
+        return message.channel.send("METETE EN UN PUTO CANAL DE VOZ HOSTIA")
+    }
+    }
+    
+    else if(command === 'samuel'){
         return message.channel.send(fraseRandom(samuel));
-    }else if(command === 'ernesto'){
+    }
+    else if(command === 'ernesto'){
         return message.channel.send(fraseRandom(ernesto));
-    }else if(command === 'mario'){
+    }
+    else if(command === 'mario'){
         return message.channel.send(fraseRandom(mario));
     }else if(command === 'guille'){
         return message.channel.send(fraseRandom(guille));
@@ -105,7 +139,35 @@ client.on('messageCreate', async message =>{
     
 });
 
-
+client.player
+    // Emitted when channel was empty.
+    .on('channelEmpty',  (queue) =>
+        console.log(`Everyone left the Voice Channel, queue ended.`))
+    // Emitted when a song was added to the queue.
+    .on('songAdd',  (queue, song) =>
+        console.log(`Song ${song} was added to the queue.`))
+    // Emitted when a playlist was added to the queue.
+    .on('playlistAdd',  (queue, playlist) =>
+        console.log(`Playlist ${playlist} with ${playlist.songs.length} was added to the queue.`))
+    // Emitted when there was no more music to play.
+    .on('queueEnd',  (queue) =>
+        console.log(`The queue has ended.`))
+    // Emitted when a song changed.
+    .on('songChanged', (queue, newSong, oldSong) =>
+        console.log(`${newSong} is now playing.`))
+    // Emitted when a first song in the queue started playing.
+    .on('songFirst',  (queue, song) =>
+        console.log(`Started playing ${song}.`))
+    // Emitted when someone disconnected the bot from the channel.
+    .on('clientDisconnect', (queue) =>
+        console.log(`I was kicked from the Voice Channel, queue ended.`))
+    // Emitted when deafenOnJoin is true and the bot was undeafened
+    .on('clientUndeafen', (queue) =>
+        console.log(`I got undefeanded.`))
+    // Emitted when there was an error in runtime
+    .on('error', (error, queue) => {
+        console.log(`Error: ${error} in ${queue.guild.name}`);
+    });
 
 
 
